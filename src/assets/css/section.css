@@ -1,0 +1,10 @@
+.generator-params {
+	max-width: 300px;
+}
+
+.generator-params label {
+	width: 100%;
+}
+.generator-params .bp3-numeric-input .bp3-input-group {
+	width: calc(100% - 30px);
+}

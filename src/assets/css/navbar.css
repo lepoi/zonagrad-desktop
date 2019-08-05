@@ -1,0 +1,4 @@
+.nav-link.selected {
+	box-shadow: 0 0 7.5px 0 var(--color-link);
+	z-index: -1;
+}

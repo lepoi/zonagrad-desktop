@@ -1,0 +1,30 @@
+a, a:not(button) {
+	color: var(--color-link);
+	text-decoration: none !important;
+}
+
+.app {
+	width: 100%;
+	min-height: 100vh;
+	overflow-x: hidden;
+	background-color: var(--bg-primary);
+}
+
+.app-routes {
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	justify-content: center;
+}
+
+.routes-wrapper {
+	width: 100%;
+	max-width: 1140px;
+}
+
+.bp3-file-upload-input::after {
+    padding: 0 .25em !important;
+    width: auto !important;
+}
