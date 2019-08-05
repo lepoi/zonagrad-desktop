@@ -1,9 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
+import Home from './components/sections/Home';
 import Generator from './components/sections/Generator';
-import Section2 from './components/sections/Section2';
 
 import 'normalize.css/normalize.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
@@ -19,8 +19,12 @@ function App() {
         <Navbar />
         <div className='app-routes'>
           <div className='routes-wrapper pad-m'>
-            <Route path='/' component={ Generator } exact />
-            <Route path='/section2' component={ Section2 } />
+            <Route path='/' component={ Home } exact />
+            <Route path='/generator' component={ Generator } />
+            {
+              window.location.pathname.includes('index.html') &&
+              <Redirect to='/' />
+            }
           </div>
         </div>
       </Router>

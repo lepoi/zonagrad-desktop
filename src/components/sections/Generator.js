@@ -199,7 +199,7 @@ class Generator extends Component {
 			}
 
 			this.addToast({
-				message: `${baseDir}/${relDest}/students.csv`,
+				message: path.join(baseDir, relDest, 'students.csv'),
 				intent: 'success'
 			});
 		});
@@ -286,7 +286,10 @@ class Generator extends Component {
 					position={ Position.TOP }
 					ref={ this.refHandlers.toaster }
 				/>
-				<div className='row'>
+				<div
+					className='row'
+					style={{ justifyContent: 'center' }}
+				>
 					<div className='generator-params'>
 						<div className='pad-s mar-xs'>
 							<Button
@@ -391,7 +394,7 @@ class Generator extends Component {
 							</Label>
 						</div>
 					</div>
-					<div className='grow-1 mar-xs'>
+					<div className='mar-xs'>
 						<Table
 							numRows={ this.state.rows }
 							columnWidths={ [150, 400] }

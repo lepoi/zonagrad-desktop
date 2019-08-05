@@ -17,13 +17,13 @@ class Navbar extends Component {
 		const links = [
 			{
 				route: '/',
-				text: 'Generador de códigos',
+				text: 'Inicio',
 				icon: 'home'
 			},
 			{
-				route: '/section2',
-				text: 'Sección 2',
-				icon: 'document'
+				route: '/generator',
+				text: 'Generador de códigos',
+				icon: 'th'
 			}
 		]
 

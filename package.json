@@ -1,17 +1,71 @@
 {
   "name": "zonagrad-desktop",
+  "description": "Desktop application built for Zonagrad",
+  "homepage": "./",
   "version": "0.1.0",
+  "author": "poi",
   "private": true,
   "dependencies": {
     "convert-excel-to-json": "^1.6.1",
+    "csvjson": "^5.1.0",
+    "cross-env": "^5.2.0",
     "electron-is-dev": "^1.1.0",
     "file-system": "^2.2.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1"
   },
+  "devDependencies": {
+    "@blueprintjs/core": "^3.18.0",
+    "@blueprintjs/select": "^3.10.0",
+    "@blueprintjs/table": "^3.7.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "concurrently": "^4.1.1",
+    "css-loader": "^3.1.0",
+    "electron": "^6.0.0",
+    "electron-builder": "^21.2.0",
+    "electron-config": "^2.0.0",
+    "react-router-dom": "^5.0.1",
+    "style-loader": "^0.23.1",
+    "wait-on": "^3.3.0"
+  },
   "main": "public/electron.js",
+  "build": {
+    "appId": "com.poi.zonagrad",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories":{
+      "buildResources": "assets"
+    }
+  },
   "scripts": {
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test --env=jsdom",
+    "react-eject": "react-scripts eject",
+    "electron-build": "electron-builder",
+    "release": "yarn react-build && electron-builder --publish=always",
+    "build": "yarn react-build && yarn electron-build",
+    "start": "concurrently \"cross-env BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electron .\""
+
+  },
+  "scriptsBkp2": {
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test --env=jsdom",
+    "react-eject": "react-scripts eject",
+    "preelectron-pack": "yarn build",
+    "electron-pack": "yarn build --em.main=build/electron.js",
+    "electron-build": "electron-builder",
+    "release": "yarn react-build && electron-builder --publish=always",
+    "build": "yarn react-build && yarn electron-build",
+    "start": "concurrently \"cross-env BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electron .\""
+  },
+  "scriptsBkp": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -33,22 +87,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@blueprintjs/core": "^3.18.0",
-    "@blueprintjs/select": "^3.10.0",
-    "@blueprintjs/table": "^3.7.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "concurrently": "^4.1.1",
-    "css-loader": "^3.1.0",
-    "csvjson": "^5.1.0",
-    "electron": "^6.0.0",
-    "electron-builder": "^21.2.0",
-    "electron-config": "^2.0.0",
-    "react-router-dom": "^5.0.1",
-    "style-loader": "^0.23.1",
-    "wait-on": "^3.3.0"
   }
 }
