@@ -98,7 +98,50 @@ class Generator extends Component {
 	}	
 	
 	switchGroup = group => {
-		this.setState({ group: group });
+		const { year, fullname, level, shift } = this.state;
+		const file = path.join(baseDir, year.toString(), level, fullname, shifts[shift], group, 'students.csv');
+
+		fs.readFile(file, 'utf-8', (err, data) => {
+			if(err) {
+				console.error("An error ocurred reading the file :" + err.message);
+				this.addToast({
+					message: 'Error al leer el archivo',
+					intent: 'danger'
+				});
+				return;
+			}
+
+			const result = csvToJson.toObject(data, {
+				relimiter: ',',
+				quote: '"'
+			});
+
+			if (result.length === 0)
+				return;
+
+			let newState = {
+				year: 2000 + parseInt(result[0].id),
+				level: result[0].nivel,
+				name: result[0].id_escuela,
+				fullname: result[0].escuela,
+				shift: result[0].turno,
+				group: result[0].grupo,
+				rows: Math.max(this.state.rows, result.length),
+				principal: result[0].director,
+				principalSign: result[0].firmaDirector,
+				students: result.map(res => res.nombre)
+			};
+
+			try {
+				fs.readFileSync(newState.principalSign, 'utf-8');
+			}
+			catch (e) {
+				newState.principalSign = '';
+			}
+			finally {
+				this.setState(newState, _ => console.log(this.state));
+			}
+		});
 	}
 
 	changeRows = rows => {
@@ -376,6 +419,7 @@ class Generator extends Component {
 						result = xlsToJson({ sourceFile: file });
 
 						const groups = Object.keys(result);
+						let newState, firstState;
 
 						groups.forEach(group => {
 							const info = result[group];
@@ -383,7 +427,7 @@ class Generator extends Component {
 							if (!info[1])
 								return;
 
-							let newState = {
+							newState = {
 								fullname: info[1].A,
 								name: info[1].B,
 								level: info[1].C,
@@ -412,11 +456,16 @@ class Generator extends Component {
 								return name;
 							});
 
-							newState.rows = students.length;
+							newState.rows = Math.max(this.state.rows, students.length);
 							newState.students = students;
+
+							if (!firstState)
+								firstState = newState;
 
 							this.saveData(newState);
 						});
+
+						this.setState(firstState);
 					}
 				});
 			}
@@ -444,7 +493,7 @@ class Generator extends Component {
 		return (
 			<div id='generator' className='app-route'>
 				<Toaster
-					position={ Position.TOP }
+					position={ Position.BOTTOM_RIGHT }
 					ref={ this.refHandlers.toaster }
 				/>
 				<div
@@ -519,8 +568,6 @@ class Generator extends Component {
 									onChange={ this.changeName }
 									intent={ this.state.invalidName ? 'danger' : '' }
 								/>
-							</Label>
-							<Label>
 								<FileInput
 									text={ this.state.logo ?
 										path.basename(this.state.logo) :
@@ -553,18 +600,16 @@ class Generator extends Component {
 								/>
 							</Label>
 							<Label>
-								Nombre del director
+								Director
 								<InputGroup
+									placeholder='Nombre'
 									value={ this.state.principal }
 									onChange={ this.changePrincipal }
 								/>
-							</Label>
-							<Label>
-								Firma del director
 								<FileInput
 									text={ this.state.principalSign ?
 										path.basename(this.state.principalSign) :
-										'Archivo' }
+										'Firma' }
 									buttonText='Examinar...'
 									onClick={ e => this.changeImage.bind(this, e, 'principalSign')() }
 								/>

@@ -28,3 +28,8 @@ a, a:not(button) {
     padding: 0 .25em !important;
     width: auto !important;
 }
+
+label.bp3-label .bp3-input,
+label.bp3-label .bp3-popover-wrapper {
+	margin-top: 0 !important;
+}
