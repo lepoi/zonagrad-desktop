@@ -20,6 +20,7 @@ import {
 	Cell
 } from '@blueprintjs/table';
 import { Select } from '@blueprintjs/select';
+import { startOfSecond } from 'date-fns';
 
 const { electron, fs, path, xlsToJson, csvToJson, constants } = window;
 const { baseDir, levels, shifts, defaultToast } = constants;
@@ -47,7 +48,7 @@ class Generator extends Component {
 			fullname: '',
 			shift: 'M',
 			group: 'A',
-			rows: 40,
+			rows: 30,
 			students: []
 		};
 	}
@@ -88,22 +89,26 @@ class Generator extends Component {
 
 	changeShift = ({ target }) => {
 		this.setState({ shift: target.value })
-	}
-
+	}	
+	
 	changeGroup = ({ target }) => {
 		this.setState({ group: target.value })
+	}	
+	
+	switchGroup = group => {
+		this.setState({ group: group });
 	}
 
 	changeRows = rows => {
 		this.setState({ rows: rows })
-	}
+	}	
 
 	changeStudent = (_, index, value) => {
 		this.setState(({ students }) => {
 			students[index] = value;
 			return { students };
-		})
-	}
+		})	
+	}	
 
 	renderLevels = (option, { handleClick, modifiers }) => {
 		if (!modifiers.matchesPredicate)
@@ -279,6 +284,21 @@ class Generator extends Component {
 		);
 	}
 
+	getGroups = _ => {
+		const { fullname, year, level, shift } = this.state;
+		const schoolPath = path.join(baseDir, year.toString(), level, fullname, shifts[shift]);
+		try {
+			const contents = fs.readdirSync(schoolPath);
+			console.info(schoolPath);
+			console.info(contents);
+	
+			return contents.filter(item => !item.includes('.'));
+		}
+		catch (e) {
+			return [];
+		}
+	}
+
 	render = _ => {
 		return (
 			<div id='generator' className='app-route'>
@@ -291,16 +311,6 @@ class Generator extends Component {
 					style={{ justifyContent: 'center' }}
 				>
 					<div className='generator-params'>
-						<div className='pad-s mar-xs'>
-							<Button
-								text='Guardar'
-								intent='primary'
-								icon='floppy-disk'
-								style={{ width: '100%' }}
-								onClick={ this.saveData }
-							/>
-						</div>
-						<Divider />
 						<div className='pad-s mar-xs'>
 							<Label>
 								Importar (.xlsx, .csv)
@@ -392,17 +402,36 @@ class Generator extends Component {
 									intent={ this.state.invalidGroup ? 'danger' : '' }
 								/>
 							</Label>
+							<Button
+								text='Guardar'
+								intent='primary'
+								icon='floppy-disk'
+								style={{ width: '100%' }}
+								onClick={ this.saveData }
+							/>
 						</div>
 					</div>
-					<div className='mar-xs'>
-						<Table
-							numRows={ this.state.rows }
-							columnWidths={ [150, 400] }
-							onCopy={ this.handleCopy }
-						>
-							<Column name='id' cellRenderer={ this.idCellRenderer } />
-							<Column name='name' cellRenderer={ this.nameCellRenderer } />
-						</Table>
+					<div>
+						<div className='mar-xs row'>
+							{ this.getGroups().map((group, index) => (
+								<Button
+									key={ index }
+									text={ group }
+									onClick={ this.switchGroup.bind(this, group) }
+									intent={ group === this.state.group ? 'success' : 'primary' }
+								/>
+							)) }
+						</div>
+						<div className='mar-xs'>
+							<Table
+								numRows={ this.state.rows }
+								columnWidths={ [150, 400] }
+								onCopy={ this.handleCopy }
+							>
+								<Column name='id' cellRenderer={ this.idCellRenderer } />
+								<Column name='name' cellRenderer={ this.nameCellRenderer } />
+							</Table>
+						</div>
 					</div>
 				</div>
 			</div>
