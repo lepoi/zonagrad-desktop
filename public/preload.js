@@ -6,6 +6,9 @@ window.csvToJson = require('csvjson');
 window.electron = require('electron');
 window.fs = require('file-system');
 window.path = require('path');
+window.qr = require('qr-image');
+window.pdf = require('pdfkit');
+
 
 // constants
 window.constants = {

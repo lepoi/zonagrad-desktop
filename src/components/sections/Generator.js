@@ -20,9 +20,8 @@ import {
 	Cell
 } from '@blueprintjs/table';
 import { Select } from '@blueprintjs/select';
-import { startOfSecond } from 'date-fns';
 
-const { electron, fs, path, xlsToJson, csvToJson, constants } = window;
+const { electron, fs, path, xlsToJson, csvToJson, qr, pdf, constants } = window;
 const { baseDir, levels, shifts, defaultToast } = constants;
 const { remote } = electron;
 const { dialog } = remote;
@@ -46,9 +45,12 @@ class Generator extends Component {
 			level: -1,
 			name: '',
 			fullname: '',
+			logo: '',
 			shift: 'M',
 			group: 'A',
-			rows: 30,
+			principal: '',
+			principalSign: '',
+			rows: 35,
 			students: []
 		};
 	}
@@ -103,6 +105,10 @@ class Generator extends Component {
 		this.setState({ rows: rows })
 	}	
 
+	changePrincipal = ({ target }) => {
+		this.setState({ principal: target.value })
+	}	
+	
 	changeStudent = (_, index, value) => {
 		this.setState(({ students }) => {
 			students[index] = value;
@@ -125,6 +131,39 @@ class Generator extends Component {
 		);
 	}
 	
+	changeImage = (event, target) => {
+		event.preventDefault();
+
+		dialog.showOpenDialog(
+			remote.getCurrentWindow(),
+			{
+				filters: [
+					{
+						name: 'JPEG o PNG',
+						extensions: ['jpg', 'jpeg', 'png']
+					},
+					{
+						name: 'JPEG',
+						extensions: ['jpg', 'jpeg']
+					},
+					{
+						name: 'PNG',
+						extensions: ['png']
+					}
+				],
+				properties: ['openFile']
+			},
+			files => {
+				if (files === undefined || files.length === 0)
+					return;
+					
+				this.setState({
+					[target]: files[0]
+				});
+			}
+		);
+	}
+
 	idCellRenderer = row => {
 		const { year, level, name, shift, group } = this.state;
 		return (
@@ -142,60 +181,109 @@ class Generator extends Component {
 		/>;
 	}
 
-	saveData = _ => {
-		const { students, year, level, fullname, name, shift, group } = this.state;
-		this.setState({ students: this.state.students.filter(item => item) });
+	saveData = state => {
+		const { students, level, fullname, name, shift, group, principal } = state ? state : this.state;
+		const { year, logo, principalSign } = this.state;
+
+		if (!state)
+			this.setState({ students: this.state.students.filter(item => item) });
 
 		const required = [fullname, name, group];
 		let requiredLabels = ['Nombre completo', 'Nombre corto', 'Grupo'];
 		let requiredFields = ['invalidFullname', 'invalidName', 'invalidGroup']
 
 		requiredLabels = requiredLabels
-			.filter((item, index) => required[index].length === 0);
+			.filter((_, index) => required[index].length === 0);
 		const requiredInvalid = requiredFields
-			.filter((item, index) => required[index].length === 0);
+			.filter((_, index) => required[index].length === 0);
+		
+		let logoDest = '';
+		let logoExt = '';
+		let signDest = '';
+		let signExt = '';
+		
+		if (!state) {
+			if (requiredInvalid.length > 0) {
+				let invalidFields = {};
+				requiredInvalid.forEach(invalid => invalidFields[invalid] = true);
 
-		if (requiredInvalid.length > 0) {
-			let invalidFields = {};
-			requiredInvalid.forEach(invalid => invalidFields[invalid] = true);
+				this.setState(invalidFields, _ => console.log(this.state));
+				this.addToast({
+					message: `Falta agregar ${requiredLabels.join(', ')}`,
+					intent: 'warning'
+				});
+				return;
+			}
 
-			this.setState(invalidFields, _ => console.log(this.state));
-			this.addToast({
-				message: `Falta agregar ${requiredLabels.join(', ')}`,
-				intent: 'warning'
-			});
-			return;
+			this.setState({
+				invalidFullname: false,
+				invalidName: false,
+				invalidGroup: false
+			});			
 		}
 
-		this.setState({
-			invalidFullname: false,
-			invalidName: false,
-			invalidGroup: false
-		});
+		logoExt = logo.split('.')[1];
+		logoDest = path.join(baseDir, year.toString(), level, fullname, `school_logo.${logoExt}`);
+		fs.copyFile(logo, logoDest);
+		
+		signExt = principalSign.split('.')[1];
+		signDest = path.join(baseDir, year.toString(), level, fullname, `principal_sign.${signExt}`);
+		fs.copyFile(principalSign, signDest);
 
-		let result = ['id,nombre,id_escuela,escuela,nivel,turno,grupo,director,firma_director'];
+		const qrDir = path.join(baseDir, year.toString(), level, fullname, shifts[shift], group, 'qr');
+		fs.mkdirSync(qrDir);
+
+		let result = ['id,nombre,id_escuela,escuela,logoEscuela,nivel,turno,grupo,director,firmaDirector'];
+		
+		const docDest = path.join(baseDir, year.toString(), level, fullname, shifts[shift], group, 'qr', 'print.pdf');
+		const doc = new pdf();
+
+		doc.pipe(fs.createWriteStream(docDest));
 
 		students.forEach((student, index) => {
 			if (!student)
 				return;
 
+			const id = `"${year % 100}${level}${name}${shift}${group}${index + 1}"`;
+
 			let item = '';
-			item += `"${year % 100}${level}${name}${shift}${group}${index + 1}"`;
+			item += id;
 			item += `,"${student}"`;
 			item += `,"${name}"`;
 			item += `,"${fullname}"`;
+			item += `,"${logoDest}"`;
 			item += `,"${level}"`;
 			item += `,"${shift}"`;
 			item += `,"${group}"`;
-			item += `,"asd"`;
-			item += `,"asd"`;
+			item += `,"${principal}"`;
+			item += `,"${signDest}"`;
 
 			result.push(item);
+
+			const qrImage = qr.imageSync(id, {
+				type: 'png',
+				size: 10,
+				margin: 0
+			});
+			const qrDest = path.join(baseDir, year.toString(), level, fullname, shifts[shift], group, 'qr', `${student}.png`);
+			fs.writeFileSync(qrDest, qrImage);
+			
+			const x = 50 + index % 2 * 200;
+			const y = 50 + parseInt(index / 2) * 200;
+
+			doc.save()
+				.image(qrDest, x, y, { width: 150 })
+				.stroke()
+				.text(student, x, y + 160);
 		});
+
+		doc.save()
+			.fill('#FFFFFF')
+			.end();
+	
 		result = result.join('\n') + '\n';
-		
+
 		const relDest = path.join(year.toString(), level, fullname, shifts[shift], group, 'students.csv');
-		console.log(path.join(baseDir, relDest));
 
 		fs.writeFile(path.join(baseDir, relDest), result, err => {
 			if (err) {
@@ -245,6 +333,10 @@ class Generator extends Component {
 				fs.readFile(file, 'utf-8', (err, data) => {
 					if(err) {
 						console.error("An error ocurred reading the file :" + err.message);
+						this.addToast({
+							text: 'Error al leer el archivo',
+							intent: 'danger'
+						});
 						return;
 					}
 
@@ -253,7 +345,6 @@ class Generator extends Component {
 							relimiter: ',',
 							quote: '"'
 						});
-						console.info(result);
 
 						if (result.length === 0)
 							return;
@@ -267,17 +358,65 @@ class Generator extends Component {
 							group: result[0].grupo,
 							rows: Math.max(this.state.rows, result.length),
 							principal: result[0].director,
-							principalSign: result[0].firma_director,
+							principalSign: result[0].firmaDirector,
 							students: result.map(res => res.nombre)
 						};
 
-						this.setState(newState);
+						try {
+							fs.readFileSync(newState.principalSign, 'utf-8');
+						}
+						catch (e) {
+							newState.principalSign = '';
+						}
+						finally {
+							this.setState(newState, _ => console.log(this.state));
+						}
 					}
 					else {
 						result = xlsToJson({ sourceFile: file });
-						const sheet = Object.values(result)[0];
 
-						console.log(result[sheet]);
+						const groups = Object.keys(result);
+
+						groups.forEach(group => {
+							const info = result[group];
+							
+							if (!info[1])
+								return;
+
+							let newState = {
+								fullname: info[1].A,
+								name: info[1].B,
+								level: info[1].C,
+								shift: info[1].D,
+								principal: info[1].E,							
+								group: group,
+							};
+
+							const students = info.slice(3).map(row => {
+								const [pre, post] = row.A.split('*');
+
+								if (!post)
+									return '';
+
+								const preArr = pre.split('/');
+								const postArr = post.split('/');
+
+								const nameArr = postArr.concat(preArr).filter(
+									item => item !== undefined
+								);
+								
+								let name = (nameArr).map(str =>
+									str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+								).join(' ');
+
+								return name;
+							});
+
+							newState.rows = students.length;
+							newState.students = students;
+
+							this.saveData(newState);
+						});
 					}
 				});
 			}
@@ -287,12 +426,14 @@ class Generator extends Component {
 	getGroups = _ => {
 		const { fullname, year, level, shift } = this.state;
 		const schoolPath = path.join(baseDir, year.toString(), level, fullname, shifts[shift]);
+
 		try {
-			const contents = fs.readdirSync(schoolPath);
-			console.info(schoolPath);
-			console.info(contents);
-	
-			return contents.filter(item => !item.includes('.'));
+			let contents = fs.readdirSync(schoolPath);
+			contents = contents.filter(item =>
+				!item.includes('.')
+			);
+
+			return contents;
 		}
 		catch (e) {
 			return [];
@@ -315,7 +456,7 @@ class Generator extends Component {
 							<Label>
 								Importar (.xlsx, .csv)
 								<FileInput
-									text='Archivo...'
+									text='Archivo'
 									buttonText='Examinar...'
 									onClick={ this.importFile }
 								/>
@@ -380,6 +521,15 @@ class Generator extends Component {
 								/>
 							</Label>
 							<Label>
+								<FileInput
+									text={ this.state.logo ?
+										path.basename(this.state.logo) :
+										'Logo' }
+									buttonText='Examinar...'
+									onClick={ e => this.changeImage.bind(this, e, 'logo')() }
+								/>
+							</Label>
+							<Label>
 								Turno:
 								<RadioGroup
 									selectedValue={ this.state.shift }
@@ -402,6 +552,24 @@ class Generator extends Component {
 									intent={ this.state.invalidGroup ? 'danger' : '' }
 								/>
 							</Label>
+							<Label>
+								Nombre del director
+								<InputGroup
+									value={ this.state.principal }
+									onChange={ this.changePrincipal }
+								/>
+							</Label>
+							<Label>
+								Firma del director
+								<FileInput
+									text={ this.state.principalSign ?
+										path.basename(this.state.principalSign) :
+										'Archivo' }
+									buttonText='Examinar...'
+									onClick={ e => this.changeImage.bind(this, e, 'principalSign')() }
+								/>
+							</Label>
+
 							<Button
 								text='Guardar'
 								intent='primary'
