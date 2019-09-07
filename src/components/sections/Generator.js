@@ -211,7 +211,7 @@ class Generator extends Component {
 		const { year, level, name, shift, group } = this.state;
 		return (
 			<Cell>
-				{ `${year % 100}${level}${name}${shift}${group}${row + 1}` }
+				{ `${year % 100}${level}${name}${shift}${group.replace(' ', '')}${row + 1}` }
 			</Cell>
 		);
 	}
@@ -224,11 +224,11 @@ class Generator extends Component {
 		/>;
 	}
 
-	saveData = state => {
-		const { students, level, fullname, name, shift, group, principal } = state ? state : this.state;
+	saveData = (newState, useNewState) => {
+		const { students, level, fullname, name, shift, group, principal } = useNewState ? newState : this.state;
 		const { year, logo, principalSign } = this.state;
 
-		if (!state)
+		if (!useNewState)
 			this.setState({ students: this.state.students.filter(item => item) });
 
 		const required = [fullname, name, group];
@@ -240,12 +240,14 @@ class Generator extends Component {
 		const requiredInvalid = requiredFields
 			.filter((_, index) => required[index].length === 0);
 		
+		console.log('POI');
+
 		let logoDest = '';
 		let logoExt = '';
 		let signDest = '';
 		let signExt = '';
 		
-		if (!state) {
+		if (!useNewState) {
 			if (requiredInvalid.length > 0) {
 				let invalidFields = {};
 				requiredInvalid.forEach(invalid => invalidFields[invalid] = true);
@@ -287,7 +289,7 @@ class Generator extends Component {
 			if (!student)
 				return;
 
-			const id = `"${year % 100}${level}${name}${shift}${group}${index + 1}"`;
+			const id = `"${year % 100}${level}${name}${shift}${group.replace(' ', '')}${index + 1}"`;
 
 			let item = '';
 			item += id;
@@ -433,7 +435,7 @@ class Generator extends Component {
 								level: info[1].C,
 								shift: info[1].D,
 								principal: info[1].E,							
-								group: group,
+								group: group
 							};
 
 							const students = info.slice(3).map(row => {
@@ -462,7 +464,7 @@ class Generator extends Component {
 							if (!firstState)
 								firstState = newState;
 
-							this.saveData(newState);
+							this.saveData(newState, true);
 						});
 
 						this.setState(firstState);
