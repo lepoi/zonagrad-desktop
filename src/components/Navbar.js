@@ -24,6 +24,11 @@ class Navbar extends Component {
 				route: '/generator',
 				text: 'Generador de códigos',
 				icon: 'th'
+			},
+			{
+				route: '/photography',
+				text: 'Toma de fotografías',
+				icon: 'th'
 			}
 		]
 

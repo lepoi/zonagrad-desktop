@@ -8,7 +8,7 @@ window.fs = require('file-system');
 window.path = require('path');
 window.qr = require('qr-image');
 window.pdf = require('pdfkit');
-
+window.hid = require('node-hid');
 
 // constants
 window.constants = {

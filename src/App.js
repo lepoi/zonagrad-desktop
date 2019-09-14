@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/sections/Home';
 import Generator from './components/sections/Generator';
+import Photography from './components/sections/Photography';
 
 import 'normalize.css/normalize.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
@@ -21,6 +22,7 @@ function App() {
           <div className='routes-wrapper pad-m'>
             <Route path='/' component={ Home } exact />
             <Route path='/generator' component={ Generator } />
+            <Route path='/photography' component={ Photography } />
             {
               window.location.pathname.includes('index.html') &&
               <Redirect to='/' />
