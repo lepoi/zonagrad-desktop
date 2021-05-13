@@ -21,6 +21,13 @@ a, a:not(button) {
 
 .routes-wrapper {
 	width: 100%;
+}
+
+.app-route {
+	margin: 0 auto;
+}
+
+.app-route:not(#photography) {
 	max-width: 1140px;
 }
 

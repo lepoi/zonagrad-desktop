@@ -13,7 +13,13 @@ import '@blueprintjs/table/lib/css/table.css';
 
 import './main.css';
 
+const { constants, fs, path, process } = window;
+const { baseDir, configDir } = constants;
+
 function App() {
+  fs.mkdir(baseDir);
+  fs.mkdir(configDir);
+
   return (
     <div className='app bp3-dark'>
       <Router>
@@ -23,10 +29,7 @@ function App() {
             <Route path='/' component={ Home } exact />
             <Route path='/generator' component={ Generator } />
             <Route path='/photography' component={ Photography } />
-            {
-              window.location.pathname.includes('index.html') &&
-              <Redirect to='/' />
-            }
+            { window.location.pathname.includes('index.html') && <Redirect to='/' /> }
           </div>
         </div>
       </Router>

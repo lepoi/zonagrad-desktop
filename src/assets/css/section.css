@@ -8,3 +8,25 @@
 .generator-params .bp3-numeric-input .bp3-input-group {
 	width: calc(100% - 30px);
 }
+
+.preview-container {
+	flex-grow: 1;
+}
+
+.rotate {
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+}
+
+.photography-preview {
+	position: fixed;
+	top: 204px;
+	max-width: 95vh;
+}
+
+.preview-responsive {
+	padding-top: calc(100% * (19/6));
+}
