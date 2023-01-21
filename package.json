@@ -6,6 +6,8 @@
   "author": "poi",
   "private": true,
   "dependencies": {
+    "@babel/helper-builder-react-jsx": "^7.19.0",
+    "@babel/helper-regex": "^7.10.5",
     "convert-excel-to-json": "^1.6.1",
     "cross-env": "^5.2.0",
     "csvjson": "^5.1.0",
@@ -45,10 +47,10 @@
     }
   },
   "scripts": {
-    "react-start": "react-scripts start",
-    "react-build": "react-scripts build",
-    "react-test": "react-scripts test --env=jsdom",
-    "react-eject": "react-scripts eject",
+    "react-start": "react-scripts --openssl-legacy-provider start",
+    "react-build": "react-scripts --openssl-legacy-provider build",
+    "react-test": "react-scripts test --openssl-legacy-provider --env=jsdom",
+    "react-eject": "react-scripts --openssl-legacy-provider eject",
     "electron-build": "electron-builder",
     "release": "yarn react-build && electron-builder --publish=always",
     "build": "yarn react-build && yarn electron-build",
